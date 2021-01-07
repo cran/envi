@@ -2,8 +2,8 @@ Package: envi
 Type: Package
 Title: Environmental Interpolation using Spatial Kernel Density
         Estimation
-Version: 0.1.3
-Date: 2020-11-25
+Version: 0.1.6
+Date: 2021-01-07
 Authors@R: 
     c(person(given = "Ian D.",
              family = "Buller",
@@ -41,9 +41,9 @@ Language: en-US
 URL: https://github.com/Waller-SUSAN/envi
 BugReports: https://github.com/Waller-SUSAN/envi/issues
 NeedsCompilation: no
-Packaged: 2020-11-25 19:27:42 UTC; bullerid
+Packaged: 2021-01-07 17:55:42 UTC; bullerid
 Author: Ian D. Buller [aut, cre, cph] (<https://orcid.org/0000-0001-9477-8582>),
   Lance A. Waller [ctb, ths] (<https://orcid.org/0000-0001-5002-8886>),
   Emory University [cph]
 Repository: CRAN
-Date/Publication: 2020-12-22 00:10:02 UTC
+Date/Publication: 2021-01-07 18:20:02 UTC
