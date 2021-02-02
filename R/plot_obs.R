@@ -4,18 +4,18 @@
 #' 
 #' @param input An object of class 'list' from the \code{\link{lrren}} function.
 #' @param plot_cols Character string of length three (3) specifying the colors for plotting: 1) presence, 2) neither, and 3) absence. The default colors in hex are \code{c("#8B3A3A", "#CCCCCC", "#0000CD")} or \code{c("indianred4", "grey80", "blue3")}.
-#' @param alpha Numeric. The two-tailed alpha level for significance threshold (default is 0.05).
+#' @param alpha Optional, numeric. The two-tailed alpha level for significance threshold (default is the \code{p_critical} value imported from \code{input}).
 #' @param lower_lrr Optional, numeric. Lower cut-off value for the log relative risk value in the color key (typically a negative value). The default is no limit and the color key will include the minimum value of the log relative risk surface. 
 #' @param upper_lrr Optional, numeric. Upper cut-off value for the log relative risk value in the color key (typically a positive value). The default is no limit and the color key will include the maximum value of the log relative risk surface.
 #' @param digits Optional, integer. The number of significant digits for the color key labels using the \code{\link[base]{round}} function (default is 1).
-#' @param ... Arguments passed to \code{\link[spatstat]{plot.ppp}} and \code{\link[fields]{image.plot}} for additional graphical features.
+#' @param ... Arguments passed to \code{\link[spatstat.geom]{plot.ppp}} and \code{\link[fields]{image.plot}} for additional graphical features.
 #'
 #' @return This function produces three plots in a two-dimensional space where the axes are the two specified covariates: 1) observation locations by group, 2) log relative risk surface, and 3) significant p-value surface. 
 #' 
 #' @importFrom fields image.plot
 #' @importFrom graphics par
 #' @importFrom raster cut raster values
-#' @importFrom spatstat plot.ppp setmarks superimpose
+#' @importFrom spatstat.geom plot.ppp setmarks superimpose
 #' @export
 #'
 #' @examples
@@ -34,23 +34,23 @@
 #' 
 #' # Presence data
 #'   presence <- spatstat.data::bei
-#'   spatstat::marks(presence) <- data.frame("presence" = rep(1, presence$n),
-#'                                           "lon" = presence$x,
-#'                                           "lat" = presence$y)
-#'   spatstat::marks(presence)$elev <- elev[presence]
-#'   spatstat::marks(presence)$grad <- grad[presence]
+#'   spatstat.geom::marks(presence) <- data.frame("presence" = rep(1, presence$n),
+#'                                                "lon" = presence$x,
+#'                                                "lat" = presence$y)
+#'   spatstat.geom::marks(presence)$elev <- elev[presence]
+#'   spatstat.geom::marks(presence)$grad <- grad[presence]
 #' 
 #' # (Pseudo-)Absence data
-#'   absence <- spatstat::rpoispp(0.008, win = elev)
-#'   spatstat::marks(absence) <- data.frame("presence" = rep(0, absence$n),
+#'   absence <- spatstat.core::rpoispp(0.008, win = elev)
+#'   spatstat.geom::marks(absence) <- data.frame("presence" = rep(0, absence$n),
 #'                                               "lon" = absence$x,
 #'                                               "lat" = absence$y)
-#'   spatstat::marks(absence)$elev <- elev[absence]
-#'   spatstat::marks(absence)$grad <- grad[absence]
+#'   spatstat.geom::marks(absence)$elev <- elev[absence]
+#'   spatstat.geom::marks(absence)$grad <- grad[absence]
 #' 
 #' # Combine into readable format
-#'   obs_locs <- spatstat::superimpose(presence, absence, check = FALSE)
-#'   obs_locs <- spatstat::marks(obs_locs)
+#'   obs_locs <- spatstat.geom::superimpose(presence, absence, check = FALSE)
+#'   obs_locs <- spatstat.geom::marks(obs_locs)
 #'   obs_locs$id <- seq(1, nrow(obs_locs), 1)
 #'   obs_locs <- obs_locs[ , c(6, 2, 3, 1, 4, 5)]
 #'   
@@ -70,7 +70,7 @@
 #' 
 plot_obs <- function(input,
                      plot_cols = c("#8B3A3A", "#CCCCCC", "#0000CD"),
-                     alpha = 0.05,
+                     alpha = input$p_critical,
                      lower_lrr = NULL,
                      upper_lrr = NULL,
                      digits = 1,
@@ -88,12 +88,12 @@ plot_obs <- function(input,
   on.exit(graphics::par(op))
   graphics::par(pty = "s")
   names_obs <- names(input$dat)
-  presence <- spatstat::setmarks(input$out$presence, "presence")
-  absence <-  spatstat::setmarks(input$out$absence, "absence")
-  dat <- spatstat::superimpose(absence, presence, check = FALSE)
+  presence <- spatstat.geom::setmarks(input$out$presence, "presence")
+  absence <-  spatstat.geom::setmarks(input$out$absence, "absence")
+  dat <- spatstat.geom::superimpose(absence, presence, check = FALSE)
 
   # Plot 1: Locations
-  p1 <- spatstat::plot.ppp(dat,
+  p1 <- spatstat.geom::plot.ppp(dat,
                                 pch = 1,
                                 cex = 0.8,
                                 cols = c(plot_cols[3], plot_cols[1]),
@@ -115,7 +115,7 @@ plot_obs <- function(input,
                   thresh_up = upper_lrr,
                   digits = digits)
 
-  p2 <- spatstat::plot.ppp(dat,
+  p2 <- spatstat.geom::plot.ppp(dat,
                                 cols = c("transparent", "transparent"),
                                 leg.side = "bottom",
                                 leg.args = list(annotate = FALSE),
@@ -153,7 +153,7 @@ plot_obs <- function(input,
     labp <- c("presence", "insignificant", "absence")
   }
 
-  p3 <- spatstat::plot.ppp(dat,
+  p3 <- spatstat.geom::plot.ppp(dat,
                                 cols = c("transparent", "transparent"),
                                 leg.side = "bottom",
                                 leg.args = list(annotate = FALSE),
@@ -161,7 +161,7 @@ plot_obs <- function(input,
                                 ylab = names_obs[6],
                                 axes = TRUE,
                                 ann = TRUE,
-                                main = paste("significant p-values\nalpha =", alpha, sep = " "),
+                                main = paste("significant p-values\nalpha =", formatC(alpha, format = "e", digits = 2), sep = " "),
                                 ...)
   fields::image.plot(pvalp,
                      add = TRUE,

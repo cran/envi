@@ -6,6 +6,8 @@
 #' @param predict Logical. If TRUE, will predict the ecological niche in geographic space. If FALSE (the default), will not predict. 
 #' @param predict_locs Input data frame of prediction locations with 4 features (columns): 1) longitude, 2) latitude, 3) covariate 1 as x-coordinate, 4) covariate 2 as y-coordinate. The covariates must be the same as those included in \code{obs_locs}.
 #' @param conserve Logical. If TRUE (the default), the ecological niche will be estimated within a concave hull around the locations in \code{obs_locs}. If FALSE, the ecological niche will be estimated within a concave hull around the locations in \code{predict_locs}.
+#' @param alpha Numeric. The two-tailed alpha level for significance threshold (default is 0.05).
+#' @param p_correct Optional. Character string specifying whether to apply a correction for multiple comparisons including a False Discovery Rate \code{p_correct = "FDR"}, a Sidak correction \code{p_correct = "uncorrelated Sidak"}, and a Bonferroni correction \code{p_correct = "uncorrelated Bonferroni"}. If \code{p_correct = "none"} (the default), then no correction is applied.
 #' @param cv Logical. If TRUE, will calculate prediction diagnostics using internal k-fold cross-validation. If FALSE (the default), will not. 
 #' @param kfold Integer. Specify the number of folds using in the internal cross-validation. Default is 10.
 #' @param balance Logical. If TRUE, the prevalence within each k-fold will be 0.50 by undersampling absence locations (assumes absence data are more frequent). If FALSE (the default), the prevalence within each k-fold will match the prevalence in \code{obs_locs}.
@@ -26,11 +28,14 @@
 #' 
 #' The \code{obs_window} argument may be useful to specify a 'known' window for the ecological niche (e.g., a convex hull around observed locations).
 #' 
+#' This function has functionality for a correction for multiple testing. If \code{p_correct = "FDR"}, calculates a False Discovery Rate by Benjamini and Hochberg. If \code{p_correct = "Sidak"}, calculates a Sidak correction. If \code{p_correct = "Bonferroni"}, calculates a Bonferroni correction. If \code{p_correct = "none"} (the default), then the function does not account for multiple testing and uses the uncorrected \code{alpha} level. See the internal \code{pval_correct} function documentation for more details.
+#' 
 #' @return An object of class 'list'. This is a named list with the following components:
 #' 
 #' \describe{
 #' \item{\code{out}}{An object of class 'list' for the estimated ecological niche.}
 #' \item{\code{dat}}{An object of class 'data.frame', returns \code{obs_locs} that are used in the accompanying plotting functions.}
+#' \item{\code{p_critical}}{A numeric value for the critical p-value used for significance tests.}
 #' }
 #' 
 #' The returned \code{out} is a named list with the following components:
@@ -54,7 +59,6 @@
 #' 
 #' \describe{
 #' \item{\code{cv_predictions_rr}}{A list of length \code{kfold} with values of the log relative risk surface at each point randomly selected in a cross-validation fold.}
-#' \item{\code{cv_predictions_pval}}{A list of length \code{kfold} with values of the asymptotic tolerance (p-value) surface at each point randomly selected in a cross-validation fold.}
 #' \item{\code{cv_labels}}{A list of length \code{kfold} with a binary value of presence (1) or absence (0) for each point randomly selected in a cross-validation fold.}
 #' }
 #' 
@@ -68,7 +72,7 @@
 #' @importFrom rgeos gBuffer
 #' @importFrom sp bbox coordinates Polygon Polygons SpatialPolygons
 #' @importFrom sparr risk
-#' @importFrom spatstat owin ppp
+#' @importFrom spatstat.geom owin ppp
 #' @importFrom stats na.omit
 #' @importFrom utils setTxtProgressBar txtProgressBar
 #' @import maptools
@@ -90,23 +94,23 @@
 #' 
 #' # Presence data
 #'   presence <- spatstat.data::bei
-#'   spatstat::marks(presence) <- data.frame("presence" = rep(1, presence$n),
+#'   spatstat.geom::marks(presence) <- data.frame("presence" = rep(1, presence$n),
 #'                                           "lon" = presence$x,
 #'                                           "lat" = presence$y)
-#'   spatstat::marks(presence)$elev <- elev[presence]
-#'   spatstat::marks(presence)$grad <- grad[presence]
+#'   spatstat.geom::marks(presence)$elev <- elev[presence]
+#'   spatstat.geom::marks(presence)$grad <- grad[presence]
 #' 
 #' # (Pseudo-)Absence data
-#'   absence <- spatstat::rpoispp(0.008, win = elev)
-#'   spatstat::marks(absence) <- data.frame("presence" = rep(0, absence$n),
+#'   absence <- spatstat.core::rpoispp(0.008, win = elev)
+#'   spatstat.geom::marks(absence) <- data.frame("presence" = rep(0, absence$n),
 #'                                               "lon" = absence$x,
 #'                                               "lat" = absence$y)
-#'   spatstat::marks(absence)$elev <- elev[absence]
-#'   spatstat::marks(absence)$grad <- grad[absence]
+#'   spatstat.geom::marks(absence)$elev <- elev[absence]
+#'   spatstat.geom::marks(absence)$grad <- grad[absence]
 #' 
 #' # Combine into readable format
-#'   obs_locs <- spatstat::superimpose(presence, absence, check = FALSE)
-#'   obs_locs <- spatstat::marks(obs_locs)
+#'   obs_locs <- spatstat.geom::superimpose(presence, absence, check = FALSE)
+#'   obs_locs <- spatstat.geom::marks(obs_locs)
 #'   obs_locs$id <- seq(1, nrow(obs_locs), 1)
 #'   obs_locs <- obs_locs[ , c(6, 2, 3, 1, 4, 5)]
 #'   
@@ -125,6 +129,8 @@ lrren <- function(obs_locs,
                   predict = FALSE,
                   predict_locs = NULL,
                   conserve = TRUE,
+                  alpha = 0.05,
+                  p_correct = "none",
                   cv = FALSE,
                   kfold = 10,
                   balance = FALSE,
@@ -136,6 +142,8 @@ lrren <- function(obs_locs,
                   ...) {
 
   if (verbose == TRUE) { message("Estimating relative risk surfaces\n") }
+  
+  match.arg(p_correct, choices = c("none", "FDR", "Sidak", "Bonferroni"))
 
   # Compute spatial windows
   ## Calculate inner boundary polygon (extent of presence and absence locations in environmental space)
@@ -177,8 +185,8 @@ lrren <- function(obs_locs,
   if (conserve == TRUE) { window_poly <- inner_poly } else { window_poly <- outer_poly }
 
   if (is.null(obs_window)) {
-    wind <- spatstat::owin(poly = list(x = rev(window_poly[ , 1]),
-                                       y = rev(window_poly[ , 2])))
+    wind <- spatstat.geom::owin(poly = list(x = rev(window_poly[ , 1]),
+                                            y = rev(window_poly[ , 2])))
   } else { wind <- obs_window }
 
   # Input Preparation
@@ -186,11 +194,11 @@ lrren <- function(obs_locs,
   presence_locs <- subset(obs_locs, obs_locs[ , 4] == 1)
   absence_locs <- subset(obs_locs, obs_locs[, 4] == 0)
 
-  ppp_presence <- spatstat::ppp(x = presence_locs[ , 5],
+  ppp_presence <- spatstat.geom::ppp(x = presence_locs[ , 5],
                                      y = presence_locs[ , 6],
                                      window = wind,
                                      checkdup = FALSE)
-  ppp_absence <- spatstat::ppp(x = absence_locs[ , 5],
+  ppp_absence <- spatstat.geom::ppp(x = absence_locs[ , 5],
                                     y = absence_locs[ , 6],
                                     window = wind,
                                     checkdup = FALSE)
@@ -202,7 +210,14 @@ lrren <- function(obs_locs,
                      verbose = verbose,
                      ...)
   bandw <- obs$f$h0
-
+  
+  if (p_correct == "none") { 
+    p_critical <- alpha 
+  } else {
+    p_critical <- pval_correct(input = as.vector(t(obs$P$v)),
+                               type = p_correct, alpha = alpha)
+  }
+  
   if (predict == FALSE) {
     output <- list("obs" = obs,
                    "presence" = ppp_presence,
@@ -278,8 +293,8 @@ lrren <- function(obs_locs,
     out_par <- foreach::foreach(k = 1:kfold,
                                 .combine = comb,
                                 .multicombine = TRUE,
-                                .packages = c("sparr", "spatstat", "raster", "utils"),
-                                .init = list(list(), list(), list())
+                                .packages = c("sparr", "spatstat.geom", "raster", "utils"),
+                                .init = list(list(), list())
                                 ) %fun% {
 
       #### Progress bar
@@ -302,11 +317,11 @@ lrren <- function(obs_locs,
 
       ##### training data
       ###### presence and absence point pattern datasets
-      ppp_presence_training <- spatstat::ppp(x = training[ , 5][training[ , 4] == 1],
+      ppp_presence_training <- spatstat.geom::ppp(x = training[ , 5][training[ , 4] == 1],
                                                   y = training[ , 6][training[ , 4] == 1],
                                                   window = wind,
                                                   checkdup = FALSE)
-      ppp_absence_training <- spatstat::ppp(x = training[ , 5][training[ , 4] == 0],
+      ppp_absence_training <- spatstat.geom::ppp(x = training[ , 5][training[ , 4] == 0],
                                                  y = training[ , 6][training[ , 4] == 0], 
                                                  window = wind,
                                                  checkdup = FALSE)
@@ -321,9 +336,6 @@ lrren <- function(obs_locs,
       ##### Convert to semi-continuous raster
       rr_raster <- raster::raster(rand_lrr$rr)
       rr_raster[is.na(rr_raster[])] <- 0 # if NA, assigned null value (log(rr) = 0)
-      ##### Convert to categorical raster
-      pval_raster <- raster::raster(rand_lrr$P)
-      pval_raster[is.na(pval_raster[])] <- 0.5 # if NA, assigned null value (p = 0.5)
 
       ##### Predict testing dataset
       extract_testing <- testing[ , 5:6]
@@ -331,12 +343,9 @@ lrren <- function(obs_locs,
       ##### Output for each k-fold
       ###### Record category (semi-continuous) of testing data
       cv_predictions_rr <- raster::extract(rr_raster, extract_testing)
-      ###### Record category (categorical) of testing data
-      cv_predictions_pval <- raster::extract(pval_raster, extract_testing)
       cv_labels <- testing[ , 4] # Record labels (marks) of testing data
 
       par_results <- list("cv_predictions_rr" = cv_predictions_rr,
-                          "cv_predictions_pval" = cv_predictions_pval,
                           "cv_labels"= cv_labels)
       return(par_results)
     }
@@ -348,16 +357,15 @@ lrren <- function(obs_locs,
 
     if (verbose == TRUE) { message("\nCalculating Cross-Validation Statistics") }
     cv_predictions_rr <- out_par[[1]]
-    cv_predictions_pval <- out_par[[2]]
-    cv_labels <- out_par[[3]]
+    cv_labels <- out_par[[2]]
 
     cv_results <- list("cv_predictions_rr" = cv_predictions_rr,
-                       "cv_predictions_pval" = cv_predictions_pval,
                        "cv_labels" = cv_labels)
     }
 
   # Output
   lrren_output <- list("out" = output,
                        "cv" = cv_results,
-                       "dat" = obs_locs)
+                       "dat" = obs_locs,
+                       "p_critical" = p_critical)
 }

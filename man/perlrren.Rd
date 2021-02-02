@@ -12,6 +12,7 @@ perlrren(
   radii = NULL,
   n_sim = 2,
   alpha = 0.05,
+  p_correct = "none",
   parallel = FALSE,
   n_core = NULL,
   verbose = FALSE,
@@ -32,6 +33,8 @@ perlrren(
 \item{n_sim}{Integer, specifying the number of simulation iterations to perform.}
 
 \item{alpha}{Numeric. The two-tailed alpha level for significance threshold (default is 0.05).}
+
+\item{p_correct}{Optional. Character string specifying whether to apply a correction for multiple comparisons including a False Discovery Rate \code{p_correct = "FDR"}, a Sidak correction \code{p_correct = "uncorrelated Sidak"}, and a Bonferroni correction \code{p_correct = "uncorrelated Bonferroni"}. If \code{p_correct = "none"} (the default), then no correction is applied.}
 
 \item{parallel}{Logical. If TRUE, will execute the function in parallel. If FALSE (the default), will not execute the function in parallel.}
 
@@ -56,6 +59,7 @@ The returned \code{sim} is a named list with the following components:
 \item{\code{lrr_sd}}{An object of class 'im' for the standard deviation of log relative risk surface.}
 \item{\code{pval_mean}}{An object of class 'im' for the mean p-value surface.}
 \item{\code{pval_prop}}{An object of class 'im' for the proportion of iterations were statistically significant surface.}
+\item{\code{alpha_median}}{A numeric value of the median critical p-value across all iterations.}
 }
 
 If \code{predict = FALSE}, the returned \code{predict} is empty. If \code{predict = TRUE}, the returned \code{predict} is an object of class 'ppp' a marked point pattern with the following features:
@@ -75,11 +79,13 @@ If \code{predict = FALSE}, the returned \code{predict} is empty. If \code{predic
 Estimates the ecological niche of a single species with presence/absence data and two covariates, iteratively, by randomly perturbing ('jittering') the coordinates of observations.
 }
 \details{
-This function performs a sensitivity analysis of an ecological niche model of a single species (presence/absence data), or the presence of one species relative to another, that uses two covariates. The observation locations (presence and absence data) are randomly spatially perturbed (i.e., "jittered") uniformly within a circular disc of a specified radius centered at their recorded location using the \code{\link[spatstat]{rjitter}} function. This method simulates the spatial uncertainty of observations, how that may affect the covariate values at each observation (i.e., misclassification error), and the estimated ecological niche based on the two specified covariates. Observations can be grouped into categories of uncertainty of class 'factor' and can vary by degrees of uncertainty specified using the \code{radii} argument.
+This function performs a sensitivity analysis of an ecological niche model of a single species (presence/absence data), or the presence of one species relative to another, that uses two covariates. The observation locations (presence and absence data) are randomly spatially perturbed (i.e., "jittered") uniformly within a circular disc of a specified radius centered at their recorded location using the \code{\link[spatstat.geom]{rjitter}} function. This method simulates the spatial uncertainty of observations, how that may affect the covariate values at each observation (i.e., misclassification error), and the estimated ecological niche based on the two specified covariates. Observations can be grouped into categories of uncertainty of class 'factor' and can vary by degrees of uncertainty specified using the \code{radii} argument.
 
 The function iteratively estimates the ecological niche using the \code{\link{lrren}} function and computes four summary statistics at every grid cell (i.e., knot) of the estimated surface: 1) mean of the log relative risk, 2) standard deviation of the log relative risk, 3) mean of the asymptotically normal p-value, and 4) proportion of iterations were statistically significant based on a two-tailed alpha-level threshold (argument \code{alpha}). The process can be performed in parallel if \code{parallel = TRUE} using the \code{\link[foreach]{foreach}} function. The computed surfaces can be visualized using the \code{\link{plot_perturb}} function. If \code{predict = TRUE}, this function will predict the four summary statistics at every location specified with \code{predict_locs} and can also be visualized using the \code{\link{plot_perturb}} function.
 
-For more information about the spatial perturbation, please refer to the \code{\link[spatstat]{rjitter}} function documentation.
+For more information about the spatial perturbation, please refer to the \code{\link[spatstat.geom]{rjitter}} function documentation.
+
+The function has functionality for a correction for multiple testing. If \code{p_correct = "FDR"}, calculates a False Discovery Rate by Benjamini and Hochberg. If \code{p_correct = "Sidak"}, calculates a Sidak correction. If \code{p_correct = "Bonferroni"}, calculates a Bonferroni correction. If \code{p_correct = "none"} (the default), then the function does not account for multiple testing and uses the uncorrected \code{alpha} level. See the internal \code{pval_correct} function documentation for more details.
 }
 \examples{
 if (interactive()) {
@@ -94,23 +100,23 @@ if (interactive()) {
   
 # Presence data
   presence <- spatstat.data::bei
-  spatstat::marks(presence) <- data.frame("presence" = rep(1, presence$n),
+  spatstat.geom::marks(presence) <- data.frame("presence" = rep(1, presence$n),
                                               "lon" = presence$x,
                                               "lat" = presence$y)
                                           
 # (Pseudo-)Absence data
-  absence <- spatstat::rpoispp(0.008, win = ims[[1]])
-  spatstat::marks(absence) <- data.frame("presence" = rep(0, absence$n),
+  absence <- spatstat.core::rpoispp(0.008, win = ims[[1]])
+  spatstat.geom::marks(absence) <- data.frame("presence" = rep(0, absence$n),
                                               "lon" = absence$x,
                                               "lat" = absence$y)
 # Combine into readable format
-  obs_locs <- spatstat::superimpose(presence, absence, check = FALSE)
-  spatstat::marks(obs_locs)$id <- seq(1, obs_locs$n, 1)
-  spatstat::marks(obs_locs) <- spatstat::marks(obs_locs)[ , c(4, 2, 3, 1)]
+  obs_locs <- spatstat.geom::superimpose(presence, absence, check = FALSE)
+  spatstat.geom::marks(obs_locs)$id <- seq(1, obs_locs$n, 1)
+  spatstat.geom::marks(obs_locs) <- spatstat.geom::marks(obs_locs)[ , c(4, 2, 3, 1)]
  
 # Specify categories for varying degrees of spatial uncertainty
 ## Creates three groups
-  spatstat::marks(obs_locs)$levels <- as.factor(stats::rpois(obs_locs$n,
+  spatstat.geom::marks(obs_locs)$levels <- as.factor(stats::rpois(obs_locs$n,
                                                                   lambda = 0.05))
                                                                   
 # Run perlrren

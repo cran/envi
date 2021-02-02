@@ -7,7 +7,7 @@
 plot_predict(
   input,
   plot_cols = c("#8B3A3A", "#CCCCCC", "#0000CD", "#FFFF00"),
-  alpha = 0.05,
+  alpha = input$p_critical,
   cref0 = "+init=epsg:4326",
   cref1 = NULL,
   lower_lrr = NULL,
@@ -21,7 +21,7 @@ plot_predict(
 
 \item{plot_cols}{Character string of length four (4) specifying the colors for plotting: 1) presence, 2) neither, 3) absence, and 4) NA values. The default colors in hex are \code{c("#8B3A3A", "#CCCCCC", "#0000CD" "#FFFF00")} or \code{c("indianred4", "grey80", "blue3", "yellow")}.}
 
-\item{alpha}{Numeric. The two-tailed alpha level for significance threshold (default is 0.05).}
+\item{alpha}{Optional, numeric. The two-tailed alpha level for significance threshold (default is the \code{p_critical} value imported from \code{input}).}
 
 \item{cref0}{Character. The Coordinate Reference System (CRS) for the x- and y-coordinates in geographic space. The default is WGS84 \code{"+init=epsg:4326"}.}
 
@@ -57,23 +57,23 @@ if (interactive()) {
 
 # Presence data
   presence <- spatstat.data::bei
-  spatstat::marks(presence) <- data.frame("presence" = rep(1, presence$n),
+  spatstat.geom::marks(presence) <- data.frame("presence" = rep(1, presence$n),
                                           "lon" = presence$x,
                                           "lat" = presence$y)
-  spatstat::marks(presence)$elev <- elev[presence]
-  spatstat::marks(presence)$grad <- grad[presence]
+  spatstat.geom::marks(presence)$elev <- elev[presence]
+  spatstat.geom::marks(presence)$grad <- grad[presence]
 
 # (Pseudo-)Absence data
-  absence <- spatstat::rpoispp(0.008, win = elev)
-  spatstat::marks(absence) <- data.frame("presence" = rep(0, absence$n),
+  absence <- spatstat.core::rpoispp(0.008, win = elev)
+  spatstat.geom::marks(absence) <- data.frame("presence" = rep(0, absence$n),
                                               "lon" = absence$x,
                                               "lat" = absence$y)
-  spatstat::marks(absence)$elev <- elev[absence]
-  spatstat::marks(absence)$grad <- grad[absence]
+  spatstat.geom::marks(absence)$elev <- elev[absence]
+  spatstat.geom::marks(absence)$grad <- grad[absence]
 
 # Combine into readable format
-  obs_locs <- spatstat::superimpose(presence, absence, check = FALSE)
-  obs_locs <- spatstat::marks(obs_locs)
+  obs_locs <- spatstat.geom::superimpose(presence, absence, check = FALSE)
+  obs_locs <- spatstat.geom::marks(obs_locs)
   obs_locs$id <- seq(1, nrow(obs_locs), 1)
   obs_locs <- obs_locs[ , c(6, 2, 3, 1, 4, 5)]
   

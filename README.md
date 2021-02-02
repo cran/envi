@@ -1,6 +1,16 @@
 envi: Environmental Interpolation using Spatial Kernel Density Estimation <img src="man/figures/envi.png" width="120" align="right" />
 ===================================================
 
+<!-- badges: start -->
+
+[![CRAN
+version](https://www.r-pkg.org/badges/version-ago/envi)](https://cran.r-project.org/package=envi)
+[![CRAN RStudio mirror
+downloads](https://cranlogs.r-pkg.org/badges/grand-total/envi?color=blue)](https://r-pkg.org/pkg/envi)
+![license](https://img.shields.io/badge/license-apache-yellow)
+
+<!-- badges: end -->
+
 <h2 id="overview">
 
 Overview
@@ -65,6 +75,9 @@ Available functions
 <td><code>seq_plot</code></td>
 <td>Called within <code>plot_perturb</code>, provides functionality for basic visualization of surfaces with sequential color palettes.</td>
 </tr>
+<td><code>pval_correct</code></td>
+<td>Called within <code>lrren</code> and <code>perlrren</code>, calculates various multiple testing corrections for the alpha level.</td>
+</tr>
 </tbody>
 <table>
 
@@ -112,23 +125,23 @@ grad_raster <- raster::raster(grad)
 
 # Presence data
 presence <- spatstat.data::bei
-spatstat.core::marks(presence) <- data.frame("presence" = rep(1, presence),
+spatstat.geom::marks(presence) <- data.frame("presence" = rep(1, presence$n),
                                         "lon" = presence$x,
                                         "lat" = presence$y)
-spatstat.core::marks(presence)$elev <- elev[presence]
-spatstat.core::marks(presence)$grad <- grad[presence]
+spatstat.geom::marks(presence)$elev <- elev[presence]
+spatstat.geom::marks(presence)$grad <- grad[presence]
 
 # (Pseudo-)Absence data
 absence <- spatstat.core::rpoispp(0.008, win = elev)
-spatstat.core::marks(absence) <- data.frame("presence" = rep(0, absence$n),
+spatstat.geom::marks(absence) <- data.frame("presence" = rep(0, absence$n),
                                             "lon" = absence$x,
                                             "lat" = absence$y)
-spatstat.core::marks(absence)$elev <- elev[absence]
-spatstat.core::marks(absence)$grad <- grad[absence]
+spatstat.geom::marks(absence)$elev <- elev[absence]
+spatstat.geom::marks(absence)$grad <- grad[absence]
 
 # Combine
-obs_locs <- spatstat.core::superimpose(presence, absence, check = FALSE)
-obs_locs <- spatstat.core::marks(obs_locs)
+obs_locs <- spatstat.geom::superimpose(presence, absence, check = FALSE)
+obs_locs <- spatstat.geom::marks(obs_locs)
 obs_locs$id <- seq(1, nrow(obs_locs), 1)
 obs_locs <- obs_locs[ , c(6, 2, 3, 1, 4, 5)]
 
@@ -140,22 +153,22 @@ predict_locs$layer2 <- raster::extract(grad_raster, predict_locs[, 1:2])
 # Run lrren() #
 # ----------- #
 
-test <- lrren(obs_locs = obs_locs,
-              predict_locs = predict_locs,
-              predict = TRUE,
-              cv = TRUE)
-
+test1 <- lrren(obs_locs = obs_locs,
+               predict_locs = predict_locs,
+               predict = TRUE,
+               cv = TRUE)
+              
 # -------------- #
 # Run plot_obs() #
 # -------------- #
 
-plot_obs(test)
+plot_obs(test1)
 
 # ------------------ #
 # Run plot_predict() #
 # ------------------ #
 
-plot_predict(test,
+plot_predict(test1,
              cref0 = "+init=epsg:5472",
              cref1 = "+init=epsg:4326")
 
@@ -163,7 +176,7 @@ plot_predict(test,
 # Run plot_cv() #
 # ------------- #
 
-plot_cv(test)
+plot_cv(test1)
 
 ```
 ![](man/figures/plot_obs1.png)
@@ -177,6 +190,31 @@ plot_cv(test)
 ![](man/figures/plot_predict2.png)
 
 ![](man/figures/plot_cv1.png)
+
+```r 
+# -------------------------------------- #
+# Run lrren() with Bonferroni correction #
+# -------------------------------------- #
+
+test2 <- lrren(obs_locs = obs_locs,
+               predict_locs = predict_locs,
+               predict = TRUE,
+               p_correct = "Bonferroni")
+
+# Note: Only showing third plot
+plot_obs(test2)
+
+# Note: Only showing second plot
+plot_predict(test2,
+             cref0 = "+init=epsg:5472",
+             cref1 = "+init=epsg:4326")
+
+# Note: plot_cv() will display the same results because cross-validation only performed for the log relative risk estimate
+```
+
+![](man/figures/plot_obs4.png)
+
+![](man/figures/plot_predict3.png)
 
 ### For the perlrren() function
 
@@ -205,21 +243,21 @@ ims[[2]]$v <- scale(ims[[2]]$v)
 
 # Presence data
 presence <- spatstat.data::bei
-spatstat.core::marks(presence) <- data.frame("presence" = rep(1, presence$n),
+spatstat.geom::marks(presence) <- data.frame("presence" = rep(1, presence$n),
                                              "lon" = presence$x,
                                              "lat" = presence$y)
 
 # (Pseudo-)Absence data
 absence <- spatstat.core::rpoispp(0.008, win = ims[[1]])
-spatstat.core::marks(absence) <- data.frame("presence" = rep(0, absence$n),
+spatstat.geom::marks(absence) <- data.frame("presence" = rep(0, absence$n),
                                             "lon" = absence$x,
                                             "lat" = absence$y)
 
 # Combine and create 'id' and 'levels' features
-obs_locs <- spatstat.core::superimpose(presence, absence, check = FALSE)
-spatstat.core::marks(obs_locs)$id <- seq(1, obs_locs$n, 1)
-spatstat.core::marks(obs_locs)$levels <- as.factor(stats::rpois(obs_locs$n, lambda = 0.05))
-spatstat.core::marks(obs_locs) <- spatstat.core::marks(obs_locs)[ , c(4, 2, 3, 1, 5)]
+obs_locs <- spatstat.geom::superimpose(presence, absence, check = FALSE)
+spatstat.geom::marks(obs_locs)$id <- seq(1, obs_locs$n, 1)
+spatstat.geom::marks(obs_locs)$levels <- as.factor(stats::rpois(obs_locs$n, lambda = 0.05))
+spatstat.geom::marks(obs_locs) <- spatstat.geom::marks(obs_locs)[ , c(4, 2, 3, 1, 5)]
 
 # -------------- #
 # Run perlrren() #
@@ -230,7 +268,7 @@ spatstat.core::marks(obs_locs) <- spatstat.core::marks(obs_locs)[ , c(4, 2, 3, 1
 ## Some observations within 100 meters
 ## Few observations within 500 meters
 
-test1 <- perlrren(obs_ppp = obs_locs,
+test3 <- perlrren(obs_ppp = obs_locs,
                   covariates = ims,
                   radii = c(10,100,500),
                   n_sim = 100)
@@ -239,7 +277,7 @@ test1 <- perlrren(obs_ppp = obs_locs,
 # Run plot_perturb() #
 # ------------------ #
 
-plot_perturb(test1,
+plot_perturb(test3,
              cref0 = "+init=epsg:5472",
              cref1 = "+init=epsg:4326",
              cov_labs = c("elev", "grad"))
