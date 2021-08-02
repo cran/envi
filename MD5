@@ -1,6 +1,6 @@
-2f53da301b8e7c0b1e2af3b96653b018 *DESCRIPTION
+fcf3e015897fb416ff45e4ba7da84009 *DESCRIPTION
 46c5fd715d281d265e68365fcf176b5c *NAMESPACE
-cc1ed61d4ede40900a25848bac70827e *NEWS.md
+c43ec80a1d31748cffe2df0011b55fae *NEWS.md
 7e8efd164f2032b895d165107ad36364 *R/div_plot.R
 f4bbfea1c535c9a87632199c12e1da8a *R/globals.R
 a555667dac4738aad67751496aa2200f *R/lrren.R
@@ -15,7 +15,7 @@ d6c742b6f6d31b5c010e01fd01857320 *R/pval_correct.R
 55a1527082c4dd0a07e42d63947cc712 *R/utils.R
 8c8c87cfaaee8fd578e3ed554926d9a5 *R/zzz.R
 9d6251b175c957e82f5f806b82f05b74 *README.md
-be953df1bd514930efc3e7151652021d *build/partial.rdb
+4d835863e1440fcf15326d73b06864c6 *build/partial.rdb
 d6e0713e5ec1d7e7070503c6a2f4b3b5 *build/vignette.rds
 3c7b5c741b3e19e6d629cd6a69c2b960 *inst/doc/vignette.html
 f274e798fa2228b6279af463e7e7afef *inst/doc/vignette.html.asis
@@ -47,12 +47,12 @@ c58969fa168f0b97ab134015c6653fe3 *man/plot_predict.Rd
 2607571b11c69771e83fff08af6af593 *man/pval_correct.Rd
 777d55fe110749cfc7b117c934b11d47 *man/seq_plot.Rd
 99379febce28f4ff33350303e869abc5 *tests/spelling.R
-5b83ddc42ac1af2198316f84896899f3 *tests/testthat.R
-95c500b70bcd96d7aad0ea1a978163e7 *tests/testthat/test-lrren.R
-db490f8815c2d36e1383fc41dee9bf9d *tests/testthat/test-perlrren.R
+cc88856b4464acd4bcb0c58598f6edd9 *tests/testthat.R
+d074b8af0ee3b1ff89abaf3e3eeb8e4f *tests/testthat/test-lrren.R
+6361c4f7438ea72ae72fb7bf4dcff7cd *tests/testthat/test-perlrren.R
 d39667e9c6125bd443261e018e6dea32 *tests/testthat/test-plot_cv.R
 0fb5c72c152d24be64c65a0db027e42a *tests/testthat/test-plot_obs.R
-be7e45c7a1f80b3448e5201d93ccff24 *tests/testthat/test-plot_perturb.R
+daea8dd62541ba3abd640849a340ec97 *tests/testthat/test-plot_perturb.R
 ed5bcf8986876944111859fecb5402d3 *tests/testthat/test-plot_predict.R
 4209f4383221babdba08d28485f27a09 *vignettes/vignette.Rmd
 f274e798fa2228b6279af463e7e7afef *vignettes/vignette.html.asis
