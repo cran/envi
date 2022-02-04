@@ -10,7 +10,7 @@ library(envi)
 library(raster)
 library(spatstat.data)
 library(spatstat.geom)
-library(spatstat.core)
+library(spatstat.random)
 set.seed(1234)
 
 # -------------- #
@@ -36,7 +36,7 @@ spatstat.geom::marks(presence)$grad <- grad[presence]
 
 # (Pseudo-)Absence Locations
 set.seed(1234) # for reproducibility
-absence <- spatstat.core::rpoispp(0.008, win = elev)
+absence <- spatstat.random::rpoispp(0.008, win = elev)
 spatstat.geom::marks(absence) <- data.frame("presence" = rep(0, absence$n),
                                             "lon" = absence$x,
                                             "lat" = absence$y)

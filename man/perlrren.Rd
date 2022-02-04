@@ -34,7 +34,7 @@ perlrren(
 
 \item{alpha}{Numeric. The two-tailed alpha level for significance threshold (default is 0.05).}
 
-\item{p_correct}{Optional. Character string specifying whether to apply a correction for multiple comparisons including a False Discovery Rate \code{p_correct = "FDR"}, a Sidak correction \code{p_correct = "uncorrelated Sidak"}, and a Bonferroni correction \code{p_correct = "uncorrelated Bonferroni"}. If \code{p_correct = "none"} (the default), then no correction is applied.}
+\item{p_correct}{Optional. Character string specifying whether to apply a correction for multiple comparisons including a False Discovery Rate \code{p_correct = "FDR"}, a Sidak correction \code{p_correct = "Sidak"}, and a Bonferroni correction \code{p_correct = "Bonferroni"}. If \code{p_correct = "none"} (the default), then no correction is applied.}
 
 \item{parallel}{Logical. If TRUE, will execute the function in parallel. If FALSE (the default), will not execute the function in parallel.}
 
@@ -105,7 +105,7 @@ if (interactive()) {
                                               "lat" = presence$y)
                                           
 # (Pseudo-)Absence data
-  absence <- spatstat.core::rpoispp(0.008, win = ims[[1]])
+  absence <- spatstat.random::rpoispp(0.008, win = ims[[1]])
   spatstat.geom::marks(absence) <- data.frame("presence" = rep(0, absence$n),
                                               "lon" = absence$x,
                                               "lat" = absence$y)

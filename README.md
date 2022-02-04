@@ -8,6 +8,8 @@ version](https://www.r-pkg.org/badges/version-ago/envi)](https://cran.r-project.
 [![CRAN RStudio mirror
 downloads](https://cranlogs.r-pkg.org/badges/grand-total/envi?color=blue)](https://r-pkg.org/pkg/envi)
 ![license](https://img.shields.io/badge/license-apache-yellow)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5347827.svg)](https://doi.org/10.5281/zenodo.5347827)
+
 
 <!-- badges: end -->
 
@@ -106,8 +108,9 @@ set.seed(1234) # for reproducibility
 
 library(envi)
 library(raster)
-library(spatstat.core)
 library(spatstat.data)
+library(spatstat.geom)
+library(spatstat.random)
 
 # -------------- #
 # Prepare inputs #
@@ -132,7 +135,7 @@ spatstat.geom::marks(presence)$elev <- elev[presence]
 spatstat.geom::marks(presence)$grad <- grad[presence]
 
 # (Pseudo-)Absence data
-absence <- spatstat.core::rpoispp(0.008, win = elev)
+absence <- spatstat.random::rpoispp(0.008, win = elev)
 spatstat.geom::marks(absence) <- data.frame("presence" = rep(0, absence$n),
                                             "lon" = absence$x,
                                             "lat" = absence$y)
@@ -153,31 +156,31 @@ predict_locs$layer2 <- raster::extract(grad_raster, predict_locs[, 1:2])
 # Run lrren() #
 # ----------- #
 
-test1 <- lrren(obs_locs = obs_locs,
-               predict_locs = predict_locs,
-               predict = TRUE,
-               verbose = TRUE,
-               cv = TRUE)
+test1 <- envi::lrren(obs_locs = obs_locs,
+                     predict_locs = predict_locs,
+                     predict = TRUE,
+                     verbose = TRUE,
+                     cv = TRUE)
               
 # -------------- #
 # Run plot_obs() #
 # -------------- #
 
-plot_obs(test1)
+envi::plot_obs(test1)
 
 # ------------------ #
 # Run plot_predict() #
 # ------------------ #
 
-plot_predict(test1,
-             cref0 = "EPSG:5472",
-             cref1 = "EPSG:4326")
+envi::plot_predict(test1,
+                   cref0 = "EPSG:5472",
+                   cref1 = "EPSG:4326")
 
 # ------------- #
 # Run plot_cv() #
 # ------------- #
 
-plot_cv(test1)
+envi::plot_cv(test1)
 
 ```
 ![](man/figures/plot_obs1.png)
@@ -197,18 +200,18 @@ plot_cv(test1)
 # Run lrren() with Bonferroni correction #
 # -------------------------------------- #
 
-test2 <- lrren(obs_locs = obs_locs,
-               predict_locs = predict_locs,
-               predict = TRUE,
-               p_correct = "Bonferroni")
+test2 <- envi::lrren(obs_locs = obs_locs,
+                     predict_locs = predict_locs,
+                     predict = TRUE,
+                     p_correct = "Bonferroni")
 
 # Note: Only showing third plot
-plot_obs(test2)
+envi::plot_obs(test2)
 
 # Note: Only showing second plot
-plot_predict(test2,
-             cref0 = "EPSG:5472",
-             cref1 = "EPSG:4326")
+envi::plot_predict(test2,
+                   cref0 = "EPSG:5472",
+                   cref1 = "EPSG:4326")
 
 # Note: plot_cv() will display the same results because cross-validation only performed for the log relative risk estimate
 ```
@@ -228,8 +231,9 @@ set.seed(1234) # for reproducibility
 
 library(envi)
 library(raster)
-library(spatstat.core)
 library(spatstat.data)
+library(spatstat.geom)
+library(spatstat.random)
 
 # -------------- #
 # Prepare inputs #
@@ -249,7 +253,7 @@ spatstat.geom::marks(presence) <- data.frame("presence" = rep(1, presence$n),
                                              "lat" = presence$y)
 
 # (Pseudo-)Absence data
-absence <- spatstat.core::rpoispp(0.008, win = ims[[1]])
+absence <- spatstat.random::rpoispp(0.008, win = ims[[1]])
 spatstat.geom::marks(absence) <- data.frame("presence" = rep(0, absence$n),
                                             "lon" = absence$x,
                                             "lat" = absence$y)
@@ -269,21 +273,21 @@ spatstat.geom::marks(obs_locs) <- spatstat.geom::marks(obs_locs)[ , c(4, 2, 3, 1
 ## Some observations within 100 meters
 ## Few observations within 500 meters
 
-test3 <- perlrren(obs_ppp = obs_locs,
-                  covariates = ims,
-                  radii = c(10,100,500),
-                  verbose = TRUE,
-                  parallel = TRUE,
-                  n_sim = 100)
+test3 <- envi::perlrren(obs_ppp = obs_locs,
+                        covariates = ims,
+                        radii = c(10,100,500),
+                        verbose = FALSE, # may not be availabe if parallel = TRUE
+                        parallel = TRUE,
+                        n_sim = 100)
                  
 # ------------------ #
 # Run plot_perturb() #
 # ------------------ #
 
-plot_perturb(test3,
-             cref0 = "EPSG:5472",
-             cref1 = "EPSG:4326",
-             cov_labs = c("elev", "grad"))
+envi::plot_perturb(test3,
+                   cref0 = "EPSG:5472",
+                   cref1 = "EPSG:4326",
+                   cov_labs = c("elev", "grad"))
 
 ```
 
