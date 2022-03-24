@@ -22,7 +22,6 @@
 #' @importFrom raster crs raster projectRaster
 #' @importFrom sp CRS
 #' @importFrom spatstat.geom pixellate
-#' @importFrom spatstat.random rpoispp
 #' 
 #' @export
 #' 
@@ -187,9 +186,7 @@ plot_perturb <- function(input,
     raster::crs(lrr_mean) <- sp::CRS(SRS_string = cref0)
     if (!is.null(cref1)) {
       lrr_mean <- raster::projectRaster(lrr_mean,
-                                        crs = sp::CRS(SRS_string = cref1),
-                                        method = "ngb",
-                                        legacy = TRUE)
+                                        crs = sp::CRS(SRS_string = cref1))
     }
     
     lrr_sd <- spatstat.geom::pixellate(input$predict,
@@ -198,9 +195,7 @@ plot_perturb <- function(input,
     raster::crs(lrr_sd) <- sp::CRS(SRS_string = cref0)
     if (!is.null(cref1)) {
       lrr_sd <- raster::projectRaster(lrr_sd,
-                                      crs = sp::CRS(SRS_string = cref1),
-                                      method = "ngb",
-                                      legacy = TRUE)
+                                      crs = sp::CRS(SRS_string = cref1))
     }
     
     pval_mean <- spatstat.geom::pixellate(input$predict,
@@ -209,9 +204,7 @@ plot_perturb <- function(input,
     raster::crs(pval_mean) <- sp::CRS(SRS_string = cref0)
     if (!is.null(cref1)) {
       pval_mean <- raster::projectRaster(pval_mean,
-                                         crs = sp::CRS(SRS_string = cref1),
-                                         method = "ngb",
-                                         legacy = TRUE)
+                                         crs = sp::CRS(SRS_string = cref1))
     }
     
     pval_prop <- spatstat.geom::pixellate(input$predict,
@@ -220,9 +213,7 @@ plot_perturb <- function(input,
     raster::crs(pval_prop) <- sp::CRS(SRS_string = cref0)
     if (!is.null(cref1)) {
       pval_prop <- raster::projectRaster(pval_prop,
-                                         crs = sp::CRS(SRS_string = cref1),
-                                         method = "ngb",
-                                         legacy = TRUE)
+                                         crs = sp::CRS(SRS_string = cref1))
     }
     
     # Plot 5: mean log relative risk

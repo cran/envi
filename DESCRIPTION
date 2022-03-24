@@ -2,8 +2,8 @@ Package: envi
 Type: Package
 Title: Environmental Interpolation using Spatial Kernel Density
         Estimation
-Version: 0.1.11
-Date: 2022-02-04
+Version: 0.1.13
+Date: 2022-03-23
 Authors@R: 
     c(person(given = "Ian D.",
              family = "Buller",
@@ -32,17 +32,18 @@ Encoding: UTF-8
 RoxygenNote: 7.1.2
 Depends: R (>= 3.5.0)
 Imports: concaveman, cvAUC, doFuture, doRNG, fields, foreach, future,
-        graphics, grDevices, iterators, pls, raster, rgeos, ROCR, sp,
-        sparr, spatstat.geom, spatstat.random, stats
-Suggests: R.rsp, spatstat.data, spelling, testthat
+        graphics, grDevices, iterators, methods, pls, raster, rgeos,
+        ROCR, sp, sparr, spatstat.geom, stats
+Suggests: R.rsp, spatstat.data, spatstat.random, spelling, testthat,
+        utils
 VignetteBuilder: R.rsp
 Language: en-US
 URL: https://github.com/Waller-SUSAN/envi
 BugReports: https://github.com/Waller-SUSAN/envi/issues
 NeedsCompilation: no
-Packaged: 2022-02-04 17:21:11 UTC; bullerid
+Packaged: 2022-03-24 03:59:59 UTC; bullerid
 Author: Ian D. Buller [aut, cre, cph] (<https://orcid.org/0000-0001-9477-8582>),
   Lance A. Waller [ctb, ths] (<https://orcid.org/0000-0001-5002-8886>),
   Emory University [cph]
 Repository: CRAN
-Date/Publication: 2022-02-05 00:30:20 UTC
+Date/Publication: 2022-03-24 08:40:17 UTC
