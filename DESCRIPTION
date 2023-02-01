@@ -2,8 +2,8 @@ Package: envi
 Type: Package
 Title: Environmental Interpolation using Spatial Kernel Density
         Estimation
-Version: 0.1.15
-Date: 2022-08-30
+Version: 0.1.17
+Date: 2023-02-01
 Authors@R: 
     c(person(given = "Ian D.",
              family = "Buller",
@@ -28,21 +28,21 @@ Description: Estimates an ecological niche using occurrence data, covariates, an
         (1991) <doi:10.1002/sim.4780101112>.
 License: Apache License (>= 2.0)
 Encoding: UTF-8
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 Depends: R (>= 3.5.0)
 Imports: concaveman, cvAUC, doFuture, doRNG, fields, foreach, future,
-        graphics, grDevices, iterators, pls, raster, rgeos, ROCR, sp,
-        sparr, spatstat.geom, stats
-Suggests: maptools, R.rsp, RStoolbox, spatstat.data, spatstat.random,
-        spelling, testthat, utils
+        graphics, grDevices, iterators, pls, ROCR, sf, sparr,
+        spatstat.geom, stats, terra
+Suggests: R.rsp, RStoolbox, spatstat.data, spatstat.random, spelling,
+        testthat, utils
 VignetteBuilder: R.rsp
 Language: en-US
 URL: https://github.com/lance-waller-lab/envi
 BugReports: https://github.com/lance-waller-lab/envi/issues
 NeedsCompilation: no
-Packaged: 2022-08-30 04:18:53 UTC; bullerid
+Packaged: 2023-02-02 00:18:07 UTC; ian.buller
 Author: Ian D. Buller [aut, cre, cph] (<https://orcid.org/0000-0001-9477-8582>),
   Lance A. Waller [ctb, ths] (<https://orcid.org/0000-0001-5002-8886>),
   Emory University [cph]
 Repository: CRAN
-Date/Publication: 2022-08-30 07:00:16 UTC
+Date/Publication: 2023-02-02 00:40:02 UTC

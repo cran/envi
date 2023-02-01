@@ -2,15 +2,17 @@ envi: Environmental Interpolation using Spatial Kernel Density Estimation <img s
 ===================================================
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/lance-waller-lab/envi/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/lance-waller-lab/envi/actions/workflows/R-CMD-check.yaml)
 [![CRAN status](http://www.r-pkg.org/badges/version/envi)](https://cran.r-project.org/package=envi)
 [![CRAN version](https://www.r-pkg.org/badges/version-ago/envi)](https://cran.r-project.org/package=envi)
-[![CRAN RStudio mirror downloads](https://cranlogs.r-pkg.org/badges/grand-total/envi?color=blue)](https://r-pkg.org/pkg/envi)
+[![CRAN RStudio mirror downloads total](https://cranlogs.r-pkg.org/badges/grand-total/envi?color=blue)](https://r-pkg.org/pkg/envi)
+[![CRAN RStudio mirror downloads monthly ](http://cranlogs.r-pkg.org/badges/envi)](https://www.r-pkg.org:443/pkg/envi)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 ![GitHub last commit](https://img.shields.io/github/last-commit/lance-waller-lab/envi)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5347826.svg)](https://doi.org/10.5281/zenodo.5347826)
 <!-- badges: end -->
 
-**Date repository last updated**: August 30, 2022
+**Date repository last updated**: February 01, 2023
 
 <h2 id="overview">
 
@@ -42,8 +44,8 @@ Available functions
 
 <table>
 <colgroup>
-<col width="30%" />
-<col width="70%" />
+<col width="30%"/>
+<col width="70%"/>
 </colgroup>
 <thead>
 <tr class="header">
@@ -88,7 +90,7 @@ Authors
 
 </h2>
 
-* **Ian D. Buller** - *Environmental Health Sciences, Emory University, Atlanta, Georgia.* - [GitHub](https://github.com/idblr) - [ORCID](https://orcid.org/0000-0001-9477-8582)
+* **Ian D. Buller** - *Social & Scientific Systems, Inc., a division of DLH Corporation, Silver Spring, Maryland (current)* - *Occupational and Environmental Epidemiology Branch, Division of Cancer Epidemiology and Genetics, National Cancer Institute, National Institutes of Health, Rockville, Maryland (former)* - *Environmental Health Sciences, James T. Laney School of Graduate Studies, Emory University, Atlanta, Georgia. (original)* - [GitHub](https://github.com/idblr) - [ORCID](https://orcid.org/0000-0001-9477-8582)
 
 See also the list of [contributors](https://github.com/lance-waller-lab/envi/graphs/contributors) who participated in this package, including:
 
@@ -106,10 +108,10 @@ set.seed(1234) # for reproducibility
 # ------------------ #
 
 library(envi)
-library(raster)
 library(spatstat.data)
 library(spatstat.geom)
 library(spatstat.random)
+library(terra)
 
 # -------------- #
 # Prepare inputs #
@@ -122,14 +124,14 @@ elev <- spatstat.data::bei.extra[[1]]
 grad <- spatstat.data::bei.extra[[2]]
 elev$v <- scale(elev)
 grad$v <- scale(grad)
-elev_raster <- raster::raster(elev)
-grad_raster <- raster::raster(grad)
+elev_raster <- terra::rast(elev)
+grad_raster <- terra::rast(grad)
 
 # Presence data
 presence <- spatstat.data::bei
 spatstat.geom::marks(presence) <- data.frame("presence" = rep(1, presence$n),
-                                        "lon" = presence$x,
-                                        "lat" = presence$y)
+                                             "lon" = presence$x,
+                                             "lat" = presence$y)
 spatstat.geom::marks(presence)$elev <- elev[presence]
 spatstat.geom::marks(presence)$grad <- grad[presence]
 
@@ -148,8 +150,10 @@ obs_locs$id <- seq(1, nrow(obs_locs), 1)
 obs_locs <- obs_locs[ , c(6, 2, 3, 1, 4, 5)]
 
 # Prediction Data
-predict_locs <- data.frame(raster::rasterToPoints(elev_raster))
-predict_locs$layer2 <- raster::extract(grad_raster, predict_locs[, 1:2])
+predict_xy <- terra::crds(elev_raster)
+predict_locs <- as.data.frame(predict_xy)
+predict_locs$elev <- terra::extract(elev_raster, predict_xy)[ , 1]
+predict_locs$grad <- terra::extract(grad_raster, predict_xy)[ , 1]
 
 # ----------- #
 # Run lrren() #
@@ -180,7 +184,6 @@ envi::plot_predict(test1,
 # ------------- #
 
 envi::plot_cv(test1)
-
 ```
 
 ![](man/figures/plot_obs1.png)
@@ -224,10 +227,10 @@ set.seed(1234) # for reproducibility
 # ------------------ #
 
 library(envi)
-library(raster)
 library(spatstat.data)
 library(spatstat.geom)
 library(spatstat.random)
+library(terra)
 
 # -------------- #
 # Prepare inputs #
@@ -269,7 +272,7 @@ spatstat.geom::marks(obs_locs) <- spatstat.geom::marks(obs_locs)[ , c(4, 2, 3, 1
 
 test3 <- envi::perlrren(obs_ppp = obs_locs,
                         covariates = ims,
-                        radii = c(10,100,500),
+                        radii = c(10, 100, 500),
                         verbose = FALSE, # may not be availabe if parallel = TRUE
                         parallel = TRUE,
                         n_sim = 100)
@@ -282,7 +285,6 @@ envi::plot_perturb(test3,
                    cref0 = "EPSG:5472",
                    cref1 = "EPSG:4326",
                    cov_labs = c("elev", "grad"))
-
 ```
 
 ![](man/figures/plot_perturb1.png)
@@ -296,7 +298,7 @@ envi::plot_perturb(test3,
 
 ### Funding
 
-This package was developed while the author was a doctoral student in the [Environmental Health Sciences doctoral program](https://www.sph.emory.edu/departments/eh/degree-programs/phd/index.html) at [Emory University](https://www.emory.edu/home/index.html).
+This package was developed while the author was originally a doctoral student in the [Environmental Health Sciences doctoral program](https://www.sph.emory.edu/departments/eh/degree-programs/phd/index.html) at [Emory University](https://www.emory.edu/home/index.html) and later as a postdoctoral fellow supported by the [Cancer Prevention Fellowship Program](https://cpfp.cancer.gov/) at the [National Cancer Institute](https://www.cancer.gov/). Any modifications since December 05, 2022 were made while the author was an employee of Social & Scientific Systems, Inc., a division of [DLH Corporation](https://www.dlhcorp.com).
 
 ### Acknowledgments
 
