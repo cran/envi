@@ -1,5 +1,13 @@
 # envi (development version)
 
+## envi v0.1.19
+* Fixed 'Moved Permanently' content by replacing the old URL with the new URL
+
+## envi v0.1.18
+* Fixed bug in calculation of False Discovery Rate in internal `pval_correct()` function
+* Fixed test for `plot_perturb()` function that was presenting a warning by specifying `cref0`
+* Argument `plot_cols` correctly renamed `cols` in `div_plot()` and `seq_plot()` functions
+
 ## envi v0.1.17
 * Fixed broken link in CITATION
 
