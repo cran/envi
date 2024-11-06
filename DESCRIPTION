@@ -2,8 +2,8 @@ Package: envi
 Type: Package
 Title: Environmental Interpolation using Spatial Kernel Density
         Estimation
-Version: 0.1.19
-Date: 2024-01-23
+Version: 1.0.0
+Date: 2024-11-06
 Authors@R: 
     c(person(given = "Ian D.",
              family = "Buller",
@@ -28,7 +28,7 @@ Description: Estimates an ecological niche using occurrence data, covariates, an
         (1991) <doi:10.1002/sim.4780101112>.
 License: Apache License (>= 2.0)
 Encoding: UTF-8
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
 Depends: R (>= 3.5.0)
 Imports: concaveman, cvAUC, doFuture, doRNG, fields, foreach, future,
         graphics, grDevices, iterators, pls, ROCR, sf, sparr,
@@ -40,9 +40,9 @@ Language: en-US
 URL: https://github.com/lance-waller-lab/envi
 BugReports: https://github.com/lance-waller-lab/envi/issues
 NeedsCompilation: no
-Packaged: 2024-01-23 14:14:14 UTC; ian.buller
+Packaged: 2024-11-06 18:34:06 UTC; ian.buller
 Author: Ian D. Buller [aut, cre, cph] (<https://orcid.org/0000-0001-9477-8582>),
   Lance A. Waller [ctb, ths] (<https://orcid.org/0000-0001-5002-8886>),
   Emory University [cph]
 Repository: CRAN
-Date/Publication: 2024-01-23 14:40:03 UTC
+Date/Publication: 2024-11-06 19:00:03 UTC
